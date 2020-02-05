@@ -22,4 +22,6 @@ library(scmlog)
 
 # Make sure the working directory contains the file `scmlog.txt`, if not setwd(...)
 process_scmlog()
+
+# scmlog.docx is generated in the same directory
 ```
