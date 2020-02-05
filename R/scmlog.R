@@ -47,6 +47,27 @@ parse_scmlog <- function(rundir=getwd(), input=file.path(rundir, "scmlog.txt")) 
     return(tbls)
 }
 
+make_flextable <- function(x) {
+    ft <- flextable::flextable(x)
+    ft <- flextable::border_remove(ft)
+    ft <- flextable::border_outer(ft, part="all",
+        border=officer::fp_border(color="black", width = 1))
+    ft <- flextable::border_inner_h(ft, part="all",
+        border=officer::fp_border(color="black", width = 1))
+    ft <- flextable::border_inner_v(ft, part="all",
+        border=officer::fp_border(color="black", width = 1))
+    ft <- flextable::font(ft, part="all", fontname="Times New Roman")
+    ft <- flextable::fontsize(ft, part="all", size=9)
+    ft <- flextable::align(ft, part="all", align="center")
+    ft <- flextable::bg(ft, part="header", bg="#cccccc")
+    ft <- flextable::bold(ft, part="header")
+    ft <- flextable::autofit(ft)
+    ft <- flextable::height_all(ft, part="all", height=0.183)
+    ft <- flextable::fit_to_width(ft, max_width=9)
+    return(ft)
+}
+
+
 #' Processes the scmlog.txt file and generates a Word document containing
 #' tables for each forward inclusion and backwards elimination step.
 #' @param rundir A directory containing the scmlog file (typically, the
@@ -85,38 +106,29 @@ process_scmlog <- function(
         stop("Invalid input.")
     }
 
+    summtabback <- NULL
+    summtabforw <- NULL
     for (i in 1:length(tbls)) {
 
         if (i > 1) {
             doc <- officer::body_add_break(doc, pos="after")
         }
 
-        ft <- flextable::flextable(tbls[[i]])
-        ft <- flextable::border_remove(ft)
-        ft <- flextable::border_outer(ft, part="all",
-            border=officer::fp_border(color="black", width = 1))
-        ft <- flextable::border_inner_h(ft, part="all",
-            border=officer::fp_border(color="black", width = 1))
-        ft <- flextable::border_inner_v(ft, part="all",
-            border=officer::fp_border(color="black", width = 1))
-        ft <- flextable::font(ft, part="all", fontname="Times New Roman")
-        ft <- flextable::fontsize(ft, part="all", size=9)
-        ft <- flextable::align(ft, part="all", align="center")
-        ft <- flextable::bg(ft, part="header", bg="#cccccc")
-        ft <- flextable::bold(ft, part="header")
-        ft <- flextable::autofit(ft)
-        ft <- flextable::height_all(ft, part="all", height=0.183)
-        ft <- flextable::fit_to_width(ft, max_width=9)
+        ft <- make_flextable(tbls[[i]])
 
         if (any(grepl("INSIGNIFICANT", names(tbls[[i]])))) {
             heading <- sprintf("Source of Variability \U{2014} Stepwise Covariate Analysis \U{2014} Backward Elimination \U{2014} Step %d", i)
             if (any(tbls[[i]]$INSIGNIFICANT == "YES!")) {
-                ft <- flextable::bold(ft, i=which.max(as.numeric(as.character(tbls[[i]]$PVAL))))
+                row <-which.max(as.numeric(as.character(tbls[[i]]$PVAL))) 
+                ft <- flextable::bold(ft, i=row)
+                summtabback <- rbind(summtabback, tbls[[i]][row,])
             }
         } else {
             heading <- sprintf("Source of Variability \U{2014} Stepwise Covariate Analysis \U{2014} Forward Inclusion \U{2014} Step %d", i)
             if (any(tbls[[i]]$SIGNIFICANT == "YES!")) {
-                ft <- flextable::bold(ft, i=which.min(as.numeric(as.character(tbls[[i]]$PVAL))))
+                row <-which.min(as.numeric(as.character(tbls[[i]]$PVAL))) 
+                ft <- flextable::bold(ft, i=row)
+                summtabforw <- rbind(summtabforw, tbls[[i]][row,])
             }
         }
 
@@ -131,6 +143,27 @@ process_scmlog <- function(
             message("File exists. Overwriting it because overwrite = TRUE.")
         }
     }
+
+    summtabforw$STEP <- sprintf("Forward step %s", 1:nrow(summtabforw))
+    summtabback$STEP <- sprintf("Backward step %s", 1:nrow(summtabback))
+
+    summtabforw$STEP <- sprintf("Forward step %s", 1:nrow(summtabforw))
+    summtabback$STEP <- sprintf("Backward step %s", 1:nrow(summtabback))
+
+    summtabforw$DIRECTION <- "F - Inclusion"
+    summtabback$DIRECTION <- "B - Elimination"
+
+    v <- c("STEP", "DIRECTION", "MODEL", "BASE OFV", "NEW OFV", "TEST OFV (DROP)", "GOAL", "dDF", "PVAL")
+    summtab <- rbind(summtabforw[,v], summtabback[,v])
+    summtab$STEP <- 1:nrow(summtab)
+
+    if (nrow(summtab) > 0) {
+        doc <- officer::body_add_break(doc, pos="after")
+        ft <- make_flextable(summtab)
+        doc <- officer::body_add_par(doc, value="Summary of Stepwise Covariate Analysis", style="heading 2")
+        doc <- flextable::body_add_flextable(doc, ft, align="left")
+    }
+
     print(doc, target=output)
 }
 
