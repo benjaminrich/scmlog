@@ -1,0 +1,28 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  dpi=300
+)
+```
+
+# scmlog
+
+An R package for generating Word tables from the output of the PsN command `scm`.
+
+## Installation
+
+To install from GitHub:
+
+``` r
+require(remotes)
+remotes::install_github("benjaminrich/scmlog")
+```
+
