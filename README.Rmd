@@ -21,8 +21,18 @@ An R package for generating Word tables from the output of the PsN command `scm`
 
 To install from GitHub:
 
-``` r
+```{r eval=F}
 require(remotes)
 remotes::install_github("benjaminrich/scmlog")
+```
+
+## Usage
+
+
+```{r eval=F}
+library(scmlog)
+
+# Make sure the working directory contains the file `scmlog.txt`, if not setwd(...)
+process_scmlog()
 ```
 

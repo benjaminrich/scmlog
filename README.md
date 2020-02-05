@@ -14,3 +14,12 @@ To install from GitHub:
 require(remotes)
 remotes::install_github("benjaminrich/scmlog")
 ```
+
+## Usage
+
+``` r
+library(scmlog)
+
+# Make sure the working directory contains the file `scmlog.txt`, if not setwd(...)
+process_scmlog()
+```
