@@ -150,8 +150,8 @@ process_scmlog <- function(
     summtabforw$STEP <- sprintf("Forward step %s", 1:nrow(summtabforw))
     summtabback$STEP <- sprintf("Backward step %s", 1:nrow(summtabback))
 
-    summtabforw$DIRECTION <- "F - Inclusion"
-    summtabback$DIRECTION <- "B - Elimination"
+    summtabforw$DIRECTION <- "F - Add"
+    summtabback$DIRECTION <- "B - Remove"
 
     v <- c("STEP", "DIRECTION", "MODEL", "BASE OFV", "NEW OFV", "TEST OFV (DROP)", "GOAL", "dDF", "PVAL")
     summtab <- rbind(summtabforw[,v], summtabback[,v])
